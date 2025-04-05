@@ -252,39 +252,39 @@ export default function ToolbarPlugin() {
 
 function useActiveBlock() {
   const [editor] = useLexicalComposerContext();
+  const [activeBlock, setActiveBlock] = useState<string | null>(null);
 
-  const subscribe = useCallback(
-    (onStoreChange: () => void) => {
-      return editor.registerUpdateListener(onStoreChange);
-    },
-    [editor],
-  );
+  useEffect(() => {
+    return editor.registerUpdateListener(({ editorState }) => {
+      editorState.read(() => {
+        try {
+          const selection = $getSelection();
+          if (!$isRangeSelection(selection)) {
+            setActiveBlock(null);
+            return;
+          }
 
-  const getSnapshot = useCallback(() => {
-    return editor.getEditorState().read(() => {
-      const selection = $getSelection();
-      if (!$isRangeSelection(selection)) return null;
-
-      const anchor = selection.anchor.getNode();
-      let element =
-        anchor.getKey() === 'root'
-          ? anchor
-          : $findMatchingParent(anchor, (e) => {
-              const parent = e.getParent();
-              return parent !== null && $isRootOrShadowRoot(parent);
-            });
-
-      if (element === null) {
-        element = anchor.getTopLevelElementOrThrow();
-      }
-
-      if ($isHeadingNode(element)) {
-        return element.getTag();
-      }
-
-      return element.getType();
+          // Get the current block type
+          const anchor = selection.anchor;
+          const focusNode = selection.focus.getNode();
+          const anchorNode = selection.anchor.getNode();
+          
+          // Default to paragraph if we can't determine the type
+          let blockType = 'paragraph';
+          
+          // Check if it's a heading
+          if ($isHeadingNode(anchorNode)) {
+            blockType = anchorNode.getTag();
+          }
+          
+          setActiveBlock(blockType);
+        } catch (error) {
+          console.error('Error in useActiveBlock:', error);
+          setActiveBlock(null);
+        }
+      });
     });
   }, [editor]);
 
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  return activeBlock;
 }
