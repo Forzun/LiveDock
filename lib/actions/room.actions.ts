@@ -41,7 +41,7 @@ export const getDocument = async ({roomId , userId} : {roomId: string , userId: 
         const room = await liveblocks.getRoom(roomId);
 
         // const hasAccess = Object.keys(room.usersAccesses).includes(userId); 
-
+        
         // if(!hasAccess){ 
         //     throw new Error("You do not have access to this document")
         // }
@@ -50,7 +50,4 @@ export const getDocument = async ({roomId , userId} : {roomId: string , userId: 
     }catch(error){ 
         console.log(`Error happened while getting a room: ${error}`)
     }
-
 }
-
-
